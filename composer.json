@@ -1,0 +1,26 @@
+{
+    "name": "devkraken/kraken-env-keeper",
+    "description": "A simple and efficient PHP library for reading environment variables from a .env file. This package provides a robust and exception-handling mechanism to ensure reliable access to environment variables within your application. It allows for optional default values and can be easily integrated with different project structures. The in-memory caching mechanism improves performance by avoiding redundant file reads.",
+    "type": "library",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "DevKraken\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "KrakenEnvKeeper\\Tests\\": "tests/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Dev Kraken",
+            "email": "soman@devkraken.com"
+        }
+    ],
+    "minimum-stability": "dev",
+    "require-dev": {
+        "phpunit/phpunit": "^11.2@dev"
+    }
+}
