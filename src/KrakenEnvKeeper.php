@@ -5,13 +5,7 @@ declare(strict_types=1);
 namespace DevKraken;
 
 use DevKraken\Exception\KrakenRuntimeException;
-
-interface EnvironmentInterface
-{
-    public function get(string $key): ?string;
-
-    public function has(string $key): bool;
-}
+use KrakenInterface\EnvironmentInterface;
 
 class KrakenEnvKeeper implements EnvironmentInterface
 {
