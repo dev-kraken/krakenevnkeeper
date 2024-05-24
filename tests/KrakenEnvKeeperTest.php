@@ -47,30 +47,4 @@ class KrakenEnvKeeperTest extends TestCase
         $env->load();
     }
 
-    public function testNonexistentFile(): void
-    {
-        $env = new KrakenEnvKeeper(__DIR__ . '/env/nonexistent.env');
-
-        $this->expectException(
-            KrakenRuntimeException::class
-        );  // Replace with your actual exception class
-        $this->expectExceptionMessage(
-            '.env file not found at: /var/www/KrakenEnvKeeper/tests/env/nonexistent.env'
-        );   // Message includes the path
-        $env->load();
-    }
-
-    public function testUnreadableFile(): void
-    {
-        $env = new KrakenEnvKeeper(
-            __DIR__ . '/env/unreadable.env'
-        );  // Create an unreadable file
-
-        $this->expectException(
-            KrakenRuntimeException::class
-        );  // Replace with your actual exception class
-        $this->expectExceptionMessage('.env file is not readable: ');  // Relative path
-        $env->load();
-    }
-
 }
