@@ -9,10 +9,21 @@ use KrakenInterface\EnvironmentInterface;
 
 class KrakenEnvKeeper implements EnvironmentInterface
 {
+    /**
+     * @var string The path to the `.env` file
+     */
     private string $path;
+    /**
+     * @var array Cached environment variables
+     */
     private array $cache = [];
     private int|false $lastModified;
 
+    /**
+     * KrakenEnvKeeper constructor.
+     *
+     * @param string $path
+     */
     public function __construct(string $path)
     {
         $this->path = $path;
@@ -32,6 +43,9 @@ class KrakenEnvKeeper implements EnvironmentInterface
 
     public function load(): void
     {
+        if (!empty($this->cache)) {
+            return;
+        }
         if (empty($this->cache) || $this->needsUpdate()) {
             $this->cache = $this->parseFile($this->path);
             $this->lastModified = filemtime($this->path);
@@ -48,13 +62,22 @@ class KrakenEnvKeeper implements EnvironmentInterface
             || filemtime($this->path) !== $this->lastModified;
     }
 
-    public function get(string $key): ?string
+    /**
+     * Gets the value of an environment variable.
+     *
+     * @param string $key The environment variable name
+     * @param mixed $default The default value to return if the key is not found
+     * @return string|null The value of the environment variable or the default value
+     */
+    public function get(string $key, mixed $default = null): ?string
     {
         $this->load();
-        if (!isset($this->cache[$key])) {
-            throw new KrakenRuntimeException(
-                sprintf("Environment variable '%s' not found", $key)
-            );
+        if (!array_key_exists($key, $this->cache)) {
+            if (is_null($default)) {
+                throw new KrakenRuntimeException("Environment variable '{$key}' not found");
+            }
+
+            return $default;
         }
         return $this->cache[$key] ?? null;
     }

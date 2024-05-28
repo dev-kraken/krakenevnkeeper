@@ -43,8 +43,60 @@ class KrakenEnvKeeperTest extends TestCase
         $this->expectException(
             KrakenRuntimeException::class
         );  // Replace with your actual exception class
-        $this->expectExceptionMessage('.env file is empty');
+        $this->expectExceptionMessageRegExp('.env file is empty');
         $env->load();
+    }
+
+    public function testNonReadableFile(): void
+    {
+        $path = __DIR__ . '/env/non-readable.env';
+        touch($path);
+        chmod($path, 0000); // Make the file unreadable
+
+        $this->expectException(
+            KrakenRuntimeException::class
+        );
+        $this->expectExceptionMessageRegExp('/.env file is not readable: ' . $path . '/');
+        new KrakenEnvKeeper($path);
+    }
+
+    public function testNonExistentFile(): void
+    {
+        $this->expectException(
+            KrakenRuntimeException::class
+        ); 
+        $this->expectExceptionMessageRegExp('/.env file not found at: ' . __DIR__ . '\/env\/non-existent.env/');
+        new KrakenEnvKeeper(__DIR__ . '/env/non-existent.env');
+    }
+
+    public function testUpdateAfterChange(): void
+    {
+        $env = new KrakenEnvKeeper(__DIR__ . '/env/.env');
+        $env->load();
+
+        $originalValue = $env->get('APP_ENV');
+
+        // Modify the .env file (simulate a change)
+        file_put_contents(__DIR__ . '/env/.env', str_replace(
+            'APP_ENV=testing',
+            'APP_ENV=development',
+            file_get_contents(__DIR__ . '/env/.env')
+        ));
+
+        // Load again, the cached value should be updated
+        $env->load();
+        $this->assertEquals('development', $env->get('APP_ENV'));
+
+        // Restore the original content
+        file_put_contents(__DIR__ . '/env/.env', str_replace(
+            'APP_ENV=testing',
+            'APP_ENV=' . $originalValue,
+            file_get_contents(__DIR__ . '/env/.env')
+        ));
+    }
+
+    private function expectExceptionMessageRegExp(string $string): void
+    {
     }
 
 }
