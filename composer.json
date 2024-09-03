@@ -21,7 +21,6 @@
     }
   ],
   "require": {
-    "devkraken/kraken-env-keeper": "0.1.0",
     "php": "^8.3"
   },
   "minimum-stability": "dev",
