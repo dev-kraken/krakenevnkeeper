@@ -9,74 +9,53 @@ use KrakenInterface\EnvironmentInterface;
 
 class KrakenEnvKeeper implements EnvironmentInterface
 {
-    /**
-     * @var string The path to the `.env` file
-     */
     private string $path;
-    /**
-     * @var array Cached environment variables
-     */
     private array $cache = [];
     private int|false $lastModified;
 
-    /**
-     * KrakenEnvKeeper constructor.
-     *
-     * @param string $path
-     */
     public function __construct(string $path)
     {
         $this->path = $path;
-        $this->lastModified = filemtime($path); // Store last modified timestamp
+        $this->validateFile($path);
+        $this->lastModified = filemtime($path);
+    }
+
+    private function validateFile(string $path): void
+    {
         if (!file_exists($path)) {
-            throw new KrakenRuntimeException(
-                sprintf('.env file not found at: %s', $path)
-            );
+            throw new KrakenRuntimeException(sprintf('.env file not found at: %s', $path));
         }
 
         if (!is_readable($path)) {
-            throw new KrakenRuntimeException(
-                sprintf('.env file is not readable: %s', $path)
-            );
+            throw new KrakenRuntimeException(sprintf('.env file is not readable: %s', $path));
         }
     }
 
     public function load(): void
     {
-        if (!empty($this->cache)) {
+        if (!empty($this->cache) && !$this->needsUpdate()) {
             return;
         }
-        if (empty($this->cache) || $this->needsUpdate()) {
-            $this->cache = $this->parseFile($this->path);
-            $this->lastModified = filemtime($this->path);
+        $this->cache = $this->parseFile($this->path);
+        $this->lastModified = filemtime($this->path);
 
-            if (empty($this->cache)) {
-                throw new KrakenRuntimeException('.env file is empty');
-            }
+        if (empty($this->cache)) {
+            throw new KrakenRuntimeException('.env file is empty');
         }
     }
 
     private function needsUpdate(): bool
     {
-        return !file_exists($this->path)
-            || filemtime($this->path) !== $this->lastModified;
+        return !file_exists($this->path) || filemtime($this->path) !== $this->lastModified;
     }
 
-    /**
-     * Gets the value of an environment variable.
-     *
-     * @param string $key The environment variable name
-     * @param mixed $default The default value to return if the key is not found
-     * @return string|null The value of the environment variable or the default value
-     */
     public function get(string $key, mixed $default = null): ?string
     {
         $this->load();
         if (!array_key_exists($key, $this->cache)) {
             if (is_null($default)) {
-                throw new KrakenRuntimeException("Environment variable '{$key}' not found");
+                throw new KrakenRuntimeException("Environment variable '$key' not found");
             }
-
             return $default;
         }
         return $this->cache[$key] ?? null;
@@ -92,9 +71,7 @@ class KrakenEnvKeeper implements EnvironmentInterface
     {
         $lines = array_filter(
             file($path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES),
-            static function ($line) {
-                return !str_starts_with(trim($line), '#');
-            }
+            static fn($line) => !str_starts_with(trim($line), '#')
         );
 
         $data = [];
@@ -104,5 +81,4 @@ class KrakenEnvKeeper implements EnvironmentInterface
         }
         return $data;
     }
-
 }
